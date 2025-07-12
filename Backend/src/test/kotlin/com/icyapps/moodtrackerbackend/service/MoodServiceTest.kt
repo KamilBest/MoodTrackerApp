@@ -6,6 +6,7 @@ import com.icyapps.moodtrackerbackend.exception.MoodAlreadySubmittedException
 import com.icyapps.moodtrackerbackend.model.MoodEntry
 import com.icyapps.moodtrackerbackend.model.MoodType
 import com.icyapps.moodtrackerbackend.repository.MoodEntryRepository
+import com.icyapps.moodtrackerbackend.util.DeviceIdUtils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -31,7 +32,7 @@ class MoodServiceTest {
             deviceId = "device123",
             mood = MoodType.CALM,
             date = LocalDate.now(),
-            createdAt = java.time.LocalDateTime.now() // Ensure createdAt is not null
+            createdAt = java.time.LocalDateTime.now()
         )
         
         whenever(repository.existsByDeviceIdAndDate("device123", LocalDate.now())).thenReturn(false)
@@ -58,7 +59,8 @@ class MoodServiceTest {
     fun `submitMood should throw exception when mood already submitted today`() {
         // Given
         val request = MoodRequest("device123", 5)
-        whenever(repository.existsByDeviceIdAndDate("device123", LocalDate.now())).thenReturn(true)
+        val hashedDeviceId = DeviceIdUtils.hashDeviceId("device123")
+        whenever(repository.existsByDeviceIdAndDate(hashedDeviceId, LocalDate.now())).thenReturn(true)
 
         // When & Then
         assertThrows<MoodAlreadySubmittedException> {
