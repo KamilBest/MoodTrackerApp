@@ -14,6 +14,12 @@ A Spring Boot API for tracking daily moods with proper validation and error hand
 
 The API will be available at `http://localhost:8080`
 
+## Security
+
+This API uses API key authentication. All requests must include the `X-API-Key` header with a valid API key.
+
+**Important:** Change the default API key in `application.properties` before deploying to production.
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -41,13 +47,16 @@ The API will be available at `http://localhost:8080`
 # Submit a mood
 curl -X POST http://localhost:8080/api/moods \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key-change-this-in-production" \
   -d '{"deviceId": "user123", "mood": 7}'
 
 # Get mood history
-curl http://localhost:8080/api/moods/history?deviceId=user123
+curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
+  http://localhost:8080/api/moods/history?deviceId=user123
 
 # Get mood types
-curl http://localhost:8080/api/moods/types
+curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
+  http://localhost:8080/api/moods/types
 ```
 
 ## Configuration
@@ -80,10 +89,12 @@ You can test the API endpoints using curl or any HTTP client:
 
 ```bash
 # Test mood types endpoint
-curl http://localhost:8080/api/moods/types
+curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
+  http://localhost:8080/api/moods/types
 
 # Submit a mood
 curl -X POST http://localhost:8080/api/moods \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-api-key-change-this-in-production" \
   -d '{"deviceId": "user123", "mood": 7}'
 ``` 

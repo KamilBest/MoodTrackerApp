@@ -15,4 +15,5 @@ class MoodAlreadySubmittedException(deviceId: String) :
 class InvalidMoodValueException(value: Int) : 
     BusinessException("Invalid mood value: $value. Must be between 1 and 8.", HttpStatus.BAD_REQUEST)
 
- 
+class InvalidDeviceIdException(deviceId: String) :
+    BusinessException("Invalid device ID format: $deviceId", HttpStatus.BAD_REQUEST)
