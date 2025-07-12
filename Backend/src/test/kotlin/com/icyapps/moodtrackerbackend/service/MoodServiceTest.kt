@@ -8,9 +8,12 @@ import com.icyapps.moodtrackerbackend.model.MoodType
 import com.icyapps.moodtrackerbackend.repository.MoodEntryRepository
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -27,14 +30,22 @@ class MoodServiceTest {
             id = UUID.randomUUID(),
             deviceId = "device123",
             mood = MoodType.CALM,
-            date = LocalDate.now()
+            date = LocalDate.now(),
+            createdAt = java.time.LocalDateTime.now() // Ensure createdAt is not null
         )
         
         whenever(repository.existsByDeviceIdAndDate("device123", LocalDate.now())).thenReturn(false)
-        whenever(repository.save(any())).thenReturn(expectedEntry)
+        whenever(repository.save(org.mockito.kotlin.any<MoodEntry>())).thenReturn(expectedEntry)
 
         // When
         val result = service.submitMood(request)
+
+        // Debug output
+        println("Result: $result")
+        println("Result.deviceId: ${result.deviceId}")
+        println("Result.mood: ${result.mood}")
+        println("Result.date: ${result.date}")
+        println("Result.createdAt: ${result.createdAt}")
 
         // Then
         assertNotNull(result)
