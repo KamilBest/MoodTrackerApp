@@ -20,7 +20,16 @@ A Kotlin Multiplatform mobile app for tracking daily moods, built with Compose M
 
 ### Desktop
 ```bash
+# Run the app
 ./gradlew :composeApp:run
+
+# Build distributable packages
+./gradlew :composeApp:package
+
+# Build specific platform packages
+./gradlew :composeApp:packageMsi    # Windows
+./gradlew :composeApp:packageDmg    # macOS
+./gradlew :composeApp:packageDeb    # Linux
 ```
 
 ## Configuration
@@ -53,6 +62,7 @@ Update `composeApp/src/androidMain/res/xml/network_security_config.xml` with you
 
 ## Features
 
+- ✅ **Cross-Platform**: Works on Android and Desktop
 - ✅ **Display Mood Types**: Shows all available moods from API
 - ✅ **Submit Mood**: Click to submit current mood
 - ✅ **View History**: See all submitted moods for the device
@@ -60,6 +70,7 @@ Update `composeApp/src/androidMain/res/xml/network_security_config.xml` with you
 - ✅ **API Key Authentication**: Secure communication with backend
 - ✅ **Error Handling**: User-friendly error messages
 - ✅ **Loading States**: Visual feedback during API calls
+- ✅ **Daily Submission Limit**: Prevents multiple submissions per day
 
 ## API Endpoints
 

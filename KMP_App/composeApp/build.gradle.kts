@@ -33,6 +33,7 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.koin.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -112,8 +113,24 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.icyapps.moodtracker"
+            packageName = "Mood Tracker"
             packageVersion = "1.0.0"
+            
+            // Windows configuration
+            windows {
+                menuGroup = "Mood Tracker"
+                upgradeUuid = "89f7e0f0-1234-5678-9abc-def012345678"
+            }
+            
+            // macOS configuration
+            macOS {
+                bundleID = "com.icyapps.moodtracker"
+            }
+            
+            // Linux configuration
+            linux {
+                debMaintainer = "your-email@example.com"
+            }
         }
     }
 }
