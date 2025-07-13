@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.dao.DataIntegrityViolationException
+import org.hibernate.exception.ConstraintViolationException
 import java.time.LocalDateTime
 
 @ControllerAdvice
@@ -36,6 +38,29 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
             .body(ErrorResponse(
                 message = errorMessage,
+                timestamp = LocalDateTime.now(),
+                status = HttpStatus.BAD_REQUEST.value()
+            ))
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleDataIntegrityViolationException(ex: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
+        logger.warn("Data integrity violation occurred: ${ex.message}")
+        
+        // Check if this is a constraint violation (like unique constraint)
+        val cause = ex.cause
+        if (cause is ConstraintViolationException) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ErrorResponse(
+                    message = "Mood already submitted today for this device",
+                    timestamp = LocalDateTime.now(),
+                    status = HttpStatus.CONFLICT.value()
+                ))
+        }
+        
+        return ResponseEntity.badRequest()
+            .body(ErrorResponse(
+                message = "Data integrity violation occurred",
                 timestamp = LocalDateTime.now(),
                 status = HttpStatus.BAD_REQUEST.value()
             ))

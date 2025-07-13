@@ -2,11 +2,14 @@ package com.icyapps.moodtracker.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.icyapps.moodtracker.data.remote.ApiResult
+import com.icyapps.moodtracker.domain.model.AppError
 import com.icyapps.moodtracker.domain.model.MoodEntry
 import com.icyapps.moodtracker.domain.model.MoodTypeInfo
 import com.icyapps.moodtracker.domain.usecase.GetAllMoodTypesUseCase
 import com.icyapps.moodtracker.domain.usecase.GetMoodHistoryUseCase
 import com.icyapps.moodtracker.domain.usecase.SubmitMoodUseCase
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,18 +33,20 @@ class MoodViewModel(
     fun selectMood(mood: Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            try {
-                val result = submitMoodUseCase(deviceId, mood)
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    lastSubmittedMood = result,
-                    successMessage = "Mood submitted successfully!"
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Failed to submit mood: ${e.message}"
-                )
+            when (val result = submitMoodUseCase(deviceId, mood)) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        lastSubmittedMood = result.data,
+                        successMessage = "Mood submitted successfully!"
+                    )
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = getErrorMessage(result.appError)
+                    )
+                }
             }
         }
     }
@@ -49,18 +54,20 @@ class MoodViewModel(
     fun loadHistory() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingHistory = true)
-            try {
-                val history = getMoodHistoryUseCase(deviceId)
-                _uiState.value = _uiState.value.copy(
-                    isLoadingHistory = false,
-                    moodHistory = history,
-                    showHistory = true
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoadingHistory = false,
-                    error = "Failed to load history: ${e.message}"
-                )
+            when (val result = getMoodHistoryUseCase(deviceId)) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingHistory = false,
+                        moodHistory = result.data,
+                        showHistory = true
+                    )
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingHistory = false,
+                        error = getErrorMessage(result.appError)
+                    )
+                }
             }
         }
     }
@@ -72,17 +79,19 @@ class MoodViewModel(
     private fun loadMoodTypes() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingTypes = true)
-            try {
-                val types = getAllMoodTypesUseCase()
-                _uiState.value = _uiState.value.copy(
-                    isLoadingTypes = false,
-                    moodTypes = types
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoadingTypes = false,
-                    error = "Failed to load mood types: ${e.message}"
-                )
+            when (val result = getAllMoodTypesUseCase()) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingTypes = false,
+                        moodTypes = result.data
+                    )
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingTypes = false,
+                        error = getErrorMessage(result.appError)
+                    )
+                }
             }
         }
     }
@@ -93,6 +102,20 @@ class MoodViewModel(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+    
+    private fun getErrorMessage(error: AppError): String = when (error) {
+        AppError.MOOD_ALREADY_SUBMITTED -> "You've already submitted your mood today"
+        AppError.INVALID_REQUEST -> "Invalid request. Please check your input and try again"
+        AppError.AUTHENTICATION_FAILED -> "Authentication failed. Please check your settings"
+        AppError.ACCESS_DENIED -> "Access denied. You don't have permission for this action"
+        AppError.RESOURCE_NOT_FOUND -> "The requested resource was not found"
+        AppError.SERVER_ERROR -> "Server error. Please try again later"
+        AppError.NETWORK_ERROR -> "Network error. Please check your connection"
+        AppError.UNKNOWN_ERROR -> "Something went wrong. Please try again"
+        AppError.FAILED_TO_LOAD_MOOD_TYPES -> "Failed to load mood types"
+        AppError.FAILED_TO_SUBMIT_MOOD -> "Failed to submit mood"
+        AppError.FAILED_TO_LOAD_HISTORY -> "Failed to load mood history"
     }
 }
 
