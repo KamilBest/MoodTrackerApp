@@ -37,4 +37,32 @@ data class MoodTypeResponse(
             )
         }
     }
+}
+
+data class MoodSubmissionStatusResponse(
+    val canSubmit: Boolean,
+    val message: String
+) {
+    companion object {
+        fun canSubmit(): MoodSubmissionStatusResponse {
+            return MoodSubmissionStatusResponse(
+                canSubmit = true,
+                message = "Mood can be submitted today"
+            )
+        }
+        
+        fun cannotSubmit(): MoodSubmissionStatusResponse {
+            return MoodSubmissionStatusResponse(
+                canSubmit = false,
+                message = "Mood already submitted today"
+            )
+        }
+        
+        fun invalidDeviceId(): MoodSubmissionStatusResponse {
+            return MoodSubmissionStatusResponse(
+                canSubmit = false,
+                message = "Invalid device ID format"
+            )
+        }
+    }
 } 

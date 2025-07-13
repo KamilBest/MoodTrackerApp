@@ -6,9 +6,11 @@ import com.icyapps.moodtracker.data.remote.ApiResult
 import com.icyapps.moodtracker.domain.model.AppError
 import com.icyapps.moodtracker.domain.model.MoodEntry
 import com.icyapps.moodtracker.domain.model.MoodTypeInfo
+import com.icyapps.moodtracker.domain.usecase.CanSubmitMoodTodayUseCase
 import com.icyapps.moodtracker.domain.usecase.GetAllMoodTypesUseCase
 import com.icyapps.moodtracker.domain.usecase.GetMoodHistoryUseCase
 import com.icyapps.moodtracker.domain.usecase.SubmitMoodUseCase
+import com.icyapps.moodtracker.util.DeviceIdGenerator
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MoodViewModel(
+    private val canSubmitMoodTodayUseCase: CanSubmitMoodTodayUseCase,
     private val getAllMoodTypesUseCase: GetAllMoodTypesUseCase,
     private val submitMoodUseCase: SubmitMoodUseCase,
     private val getMoodHistoryUseCase: GetMoodHistoryUseCase
@@ -24,10 +27,10 @@ class MoodViewModel(
     private val _uiState = MutableStateFlow(MoodUiState())
     val uiState: StateFlow<MoodUiState> = _uiState.asStateFlow()
 
-    private val deviceId = "device_${System.currentTimeMillis()}"
+    private val deviceId = DeviceIdGenerator.generateDailyDeviceId()
 
     init {
-        loadMoodTypes()
+        checkSubmissionStatus()
     }
 
     fun selectMood(mood: Int) {
@@ -38,7 +41,8 @@ class MoodViewModel(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         lastSubmittedMood = result.data,
-                        successMessage = "Mood submitted successfully!"
+                        successMessage = "Mood submitted successfully!",
+                        canSubmitMood = false // Update status after successful submission
                     )
                 }
                 is ApiResult.Error -> {
@@ -104,6 +108,31 @@ class MoodViewModel(
         _uiState.value = _uiState.value.copy(successMessage = null)
     }
     
+    private fun checkSubmissionStatus() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingSubmissionStatus = true)
+            when (val result = canSubmitMoodTodayUseCase(deviceId)) {
+                is ApiResult.Success -> {
+                    val canSubmit = result.data
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingSubmissionStatus = false,
+                        canSubmitMood = canSubmit
+                    )
+                    // Only load mood types if submission is allowed
+                    if (canSubmit) {
+                        loadMoodTypes()
+                    }
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingSubmissionStatus = false,
+                        error = getErrorMessage(result.appError)
+                    )
+                }
+            }
+        }
+    }
+    
     private fun getErrorMessage(error: AppError): String = when (error) {
         AppError.MOOD_ALREADY_SUBMITTED -> "You've already submitted your mood today"
         AppError.INVALID_REQUEST -> "Invalid request. Please check your input and try again"
@@ -123,9 +152,11 @@ data class MoodUiState(
     val moodTypes: List<MoodTypeInfo> = emptyList(),
     val moodHistory: List<MoodEntry> = emptyList(),
     val lastSubmittedMood: MoodEntry? = null,
+    val canSubmitMood: Boolean = false,
     val isLoading: Boolean = false,
     val isLoadingTypes: Boolean = false,
     val isLoadingHistory: Boolean = false,
+    val isLoadingSubmissionStatus: Boolean = false,
     val showHistory: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null

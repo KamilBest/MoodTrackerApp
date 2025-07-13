@@ -25,6 +25,7 @@ This API uses API key authentication. All requests must include the `X-API-Key` 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/moods` | Submit daily mood |
+| `GET` | `/api/moods/can-submit?deviceId=string` | Check if mood can be submitted today |
 | `GET` | `/api/moods/history?deviceId=string` | Get mood history |
 | `GET` | `/api/moods/types` | Get available mood types |
 
@@ -44,6 +45,10 @@ This API uses API key authentication. All requests must include the `X-API-Key` 
 ## Example Usage
 
 ```bash
+# Check if mood can be submitted today
+curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
+  http://localhost:8080/api/moods/can-submit?deviceId=user123
+
 # Submit a mood
 curl -X POST http://localhost:8080/api/moods \
   -H "Content-Type: application/json" \
@@ -88,6 +93,10 @@ See [POSTGRES_SETUP.md](POSTGRES_SETUP.md) for detailed PostgreSQL installation 
 You can test the API endpoints using curl or any HTTP client:
 
 ```bash
+# Test mood submission status
+curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
+  http://localhost:8080/api/moods/can-submit?deviceId=user123
+
 # Test mood types endpoint
 curl -H "X-API-Key: your-secret-api-key-change-this-in-production" \
   http://localhost:8080/api/moods/types

@@ -46,6 +46,17 @@ class MoodRepositoryImpl(
             ApiResult.Error(AppError.FAILED_TO_LOAD_HISTORY)
         }
     }
+
+    override suspend fun canSubmitMoodToday(deviceId: String): ApiResult<Boolean> {
+        return try {
+            val response = apiService.canSubmitMoodToday(deviceId)
+            ApiResult.Success(response.canSubmit)
+        } catch (e: HttpException) {
+            ApiResult.Error(getAppError(e.statusCode, e.responseBody), code = e.statusCode)
+        } catch (e: Exception) {
+            ApiResult.Error(AppError.UNKNOWN_ERROR)
+        }
+    }
     
     private fun getAppError(statusCode: Int, responseBody: String): AppError {
         return when (statusCode) {

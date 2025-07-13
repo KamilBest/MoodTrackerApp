@@ -50,6 +50,18 @@ class MoodApiServiceImpl(
         }.body()
     }
 
+    override suspend fun canSubmitMoodToday(deviceId: String): MoodSubmissionStatusResponse {
+        val response = httpClient.get("$baseUrl/api/moods/can-submit") {
+            parameter("deviceId", deviceId)
+        }
+        
+        if (response.status.isSuccess()) {
+            return response.body()
+        } else {
+            throw HttpException(response.status.value, response.bodyAsText())
+        }
+    }
+
     companion object {
         fun createHttpClient(apiKey: String): HttpClient {
             val kermit = KermitLogger.withTag("KtorHttp")

@@ -78,4 +78,47 @@ class MoodServiceTest {
             service.submitMood(request)
         }
     }
+
+    @Test
+    fun `canSubmitMoodToday should return true when no mood submitted today`() {
+        // Given
+        val deviceId = "device123"
+        val hashedDeviceId = DeviceIdUtils.hashDeviceId(deviceId)
+        whenever(repository.existsByDeviceIdAndDate(hashedDeviceId, LocalDate.now())).thenReturn(false)
+
+        // When
+        val result = service.canSubmitMoodToday(deviceId)
+
+        // Then
+        assertEquals(true, result.canSubmit)
+        assertEquals("Mood can be submitted today", result.message)
+    }
+
+    @Test
+    fun `canSubmitMoodToday should return false when mood already submitted today`() {
+        // Given
+        val deviceId = "device123"
+        val hashedDeviceId = DeviceIdUtils.hashDeviceId(deviceId)
+        whenever(repository.existsByDeviceIdAndDate(hashedDeviceId, LocalDate.now())).thenReturn(true)
+
+        // When
+        val result = service.canSubmitMoodToday(deviceId)
+
+        // Then
+        assertEquals(false, result.canSubmit)
+        assertEquals("Mood already submitted today", result.message)
+    }
+
+    @Test
+    fun `canSubmitMoodToday should return false for invalid device ID`() {
+        // Given
+        val deviceId = "invalid-device-id"
+
+        // When
+        val result = service.canSubmitMoodToday(deviceId)
+
+        // Then
+        assertEquals(false, result.canSubmit)
+        assertEquals("Invalid device ID format", result.message)
+    }
 } 

@@ -4,6 +4,7 @@ import com.icyapps.moodtracker.data.remote.MoodApiService
 import com.icyapps.moodtracker.data.remote.MoodApiServiceImpl
 import com.icyapps.moodtracker.data.repository.MoodRepositoryImpl
 import com.icyapps.moodtracker.domain.repository.MoodRepository
+import com.icyapps.moodtracker.domain.usecase.CanSubmitMoodTodayUseCase
 import com.icyapps.moodtracker.domain.usecase.GetAllMoodTypesUseCase
 import com.icyapps.moodtracker.domain.usecase.GetMoodHistoryUseCase
 import com.icyapps.moodtracker.domain.usecase.SubmitMoodUseCase
@@ -35,6 +36,12 @@ val appModule = module {
     
     // Use Cases
     single {
+        CanSubmitMoodTodayUseCase(
+            repository = get()
+        )
+    }
+    
+    single {
         GetAllMoodTypesUseCase(
             repository = get()
         )
@@ -55,6 +62,7 @@ val appModule = module {
     // ViewModels
     single {
         MoodViewModel(
+            canSubmitMoodTodayUseCase = get(),
             getAllMoodTypesUseCase = get(),
             submitMoodUseCase = get(),
             getMoodHistoryUseCase = get()

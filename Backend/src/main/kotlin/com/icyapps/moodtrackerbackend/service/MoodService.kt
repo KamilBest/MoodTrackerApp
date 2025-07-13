@@ -3,6 +3,7 @@ package com.icyapps.moodtrackerbackend.service
 import com.icyapps.moodtrackerbackend.dto.MoodRequest
 import com.icyapps.moodtrackerbackend.dto.MoodResponse
 import com.icyapps.moodtrackerbackend.dto.MoodTypeResponse
+import com.icyapps.moodtrackerbackend.dto.MoodSubmissionStatusResponse
 import com.icyapps.moodtrackerbackend.exception.InvalidDeviceIdException
 import com.icyapps.moodtrackerbackend.exception.InvalidMoodValueException
 import com.icyapps.moodtrackerbackend.exception.MoodAlreadySubmittedException
@@ -70,5 +71,28 @@ class MoodService(private val repository: MoodEntryRepository) {
 
     fun getAllMoodTypes(): List<MoodTypeResponse> {
         return MoodType.entries.map { MoodTypeResponse.fromMoodType(it) }
+    }
+
+    fun canSubmitMoodToday(deviceId: String): MoodSubmissionStatusResponse {
+        // Validate device ID
+        if (!DeviceIdUtils.isValidDeviceId(deviceId)) {
+            logger.warn("Invalid device ID format: $deviceId")
+            return MoodSubmissionStatusResponse.invalidDeviceId()
+        }
+
+        // Hash device ID for privacy
+        val hashedDeviceId = DeviceIdUtils.hashDeviceId(deviceId)
+        logger.info("Checking if mood can be submitted today for device (hashed): ${DeviceIdUtils.getLogSafePrefix(hashedDeviceId)}...")
+        
+        // Check if mood already submitted today using hashed device ID
+        val alreadySubmitted = repository.existsByDeviceIdAndDate(hashedDeviceId, LocalDate.now())
+        
+        if (alreadySubmitted) {
+            logger.info("Mood already submitted today for device (hashed): ${DeviceIdUtils.getLogSafePrefix(hashedDeviceId)}...")
+            return MoodSubmissionStatusResponse.cannotSubmit()
+        } else {
+            logger.info("Mood can be submitted today for device (hashed): ${DeviceIdUtils.getLogSafePrefix(hashedDeviceId)}...")
+            return MoodSubmissionStatusResponse.canSubmit()
+        }
     }
 }

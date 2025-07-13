@@ -142,35 +142,71 @@ fun MoodTrackerScreen(
                 }
             }
         } else {
-            // Mood Types Section
-            Card {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "How are you feeling?",
-                        fontWeight = FontWeight.Medium
-                    )
-                    
-                    if (uiState.isLoadingTypes) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
+            // Show loading while checking submission status
+            if (uiState.isLoadingSubmissionStatus) {
+                Card {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Checking if you can submit a mood today...")
+                    }
+                }
+            } else if (uiState.canSubmitMood) {
+                // Only show mood types if submission is allowed
+                Card {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "How are you feeling?",
+                            fontWeight = FontWeight.Medium
                         )
-                    } else {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(uiState.moodTypes) { moodType ->
-                                Button(
-                                    onClick = { viewModel.selectMood(moodType.value) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = !uiState.isLoading
-                                ) {
-                                    Text(moodType.label)
+                        
+                        if (uiState.isLoadingTypes) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                        } else {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(uiState.moodTypes) { moodType ->
+                                    Button(
+                                        onClick = { viewModel.selectMood(moodType.value) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        enabled = !uiState.isLoading
+                                    ) {
+                                        Text(moodType.label)
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+            } else {
+                // Show message when mood cannot be submitted
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "You've already submitted your mood today!",
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Come back tomorrow to submit a new mood.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 }
             }

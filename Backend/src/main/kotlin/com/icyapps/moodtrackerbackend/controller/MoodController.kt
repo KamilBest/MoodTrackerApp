@@ -3,6 +3,7 @@ package com.icyapps.moodtrackerbackend.controller
 import com.icyapps.moodtrackerbackend.dto.MoodRequest
 import com.icyapps.moodtrackerbackend.dto.MoodResponse
 import com.icyapps.moodtrackerbackend.dto.MoodTypeResponse
+import com.icyapps.moodtrackerbackend.dto.MoodSubmissionStatusResponse
 import com.icyapps.moodtrackerbackend.service.MoodService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -29,5 +30,11 @@ class MoodController(private val moodService: MoodService) {
     fun getAllMoodTypes(): ResponseEntity<List<MoodTypeResponse>> {
         val types = moodService.getAllMoodTypes()
         return ResponseEntity.ok(types)
+    }
+
+    @GetMapping("/can-submit")
+    fun canSubmitMoodToday(@RequestParam deviceId: String): ResponseEntity<MoodSubmissionStatusResponse> {
+        val status = moodService.canSubmitMoodToday(deviceId)
+        return ResponseEntity.ok(status)
     }
 }
